@@ -1,3 +1,7 @@
+use std::env;
+
 fn main() {
-    println!("Hello, world!");
+    let args = env::args().collect::<Vec<String>>();
+
+    dbg!(args);
 }
