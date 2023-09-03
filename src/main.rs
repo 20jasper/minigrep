@@ -1,24 +1,34 @@
 use std::env;
+use std::error::Error;
 use std::fs;
 use std::process;
 
 fn main() {
 	let args = env::args().collect::<Vec<String>>();
 
-	let config = Config::build(&args).unwrap_or_else(|err| {
-		println!("Problem parsing arguments: {err}");
+	// we care about the Ok variant, so we use unwrap_or_else to handle Err
+	// variant or hold the value
+	let config = Config::build(&args).unwrap_or_else(|error| {
+		println!("Problem parsing arguments: {error}");
 		// non-zero error code is conventional to signal an error
 		process::exit(1);
 	});
 
-	run(config);
+	// we don't care about Ok variant, so use if let to throw away Ok variant and
+	// handle Err variant
+	if let Err(error) = run(config) {
+		println!("Application error: {error}");
+		process::exit(1);
+	}
 }
 
-fn run(config: Config) {
-	let contents =
-		fs::read_to_string(config.file_path).expect("Should have been able to read the file");
+// returns unit when ok, and any error otherwise
+fn run(config: Config) -> Result<(), Box<dyn Error>> {
+	let contents = fs::read_to_string(config.file_path)?;
 
 	println!("With text:\n{contents}");
+
+	Ok(())
 }
 
 struct Config {
